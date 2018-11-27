@@ -1,4 +1,4 @@
-image: "ruby:2.3"
+image: "ruby:2.5"
 
 before_script:
   - export PATH=~/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin
@@ -25,6 +25,24 @@ rspec:
 rubocop:
   script:
     - bundle exec rubocop
+  tags:
+    - ruby
+  except:
+    - tags
+
+#ruby 2.4
+rspec:ruby2.4:
+  image: ruby:2.4-slim
+  <<: *rspec_definition
+  tags:
+    - ruby
+  except:
+    - tags
+
+#ruby 2.3
+rspec:ruby2.3:
+  image: ruby:2.3-slim
+  <<: *rspec_definition
   tags:
     - ruby
   except:
