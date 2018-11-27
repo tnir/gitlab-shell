@@ -148,7 +148,9 @@ describe GitlabKeys do
 
     context "without file writing" do
       before do
-        expect(gitlab_keys).to receive(:open).and_yield(double(:file, puts: nil, chmod: nil))
+        file = double(:file, puts: nil, chmod: nil, flock: nil)
+        expect(File).to receive(:open).with(tmp_authorized_keys_path + '.lock', 'w+').and_yield(file)
+        expect(File).to receive(:open).with(tmp_authorized_keys_path, "a", 0o600).and_yield(file)
       end
 
       it "should log an add-key event" do
