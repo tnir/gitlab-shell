@@ -32,7 +32,7 @@ rubocop:
 
 #ruby 2.4
 rspec:ruby2.4:
-  image: ruby:2.4-slim
+  image: ruby:2.4
   <<: *rspec_definition
   tags:
     - ruby
@@ -41,7 +41,7 @@ rspec:ruby2.4:
 
 #ruby 2.3
 rspec:ruby2.3:
-  image: ruby:2.3-slim
+  image: ruby:2.3
   <<: *rspec_definition
   tags:
     - ruby
