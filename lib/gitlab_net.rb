@@ -143,11 +143,15 @@ class GitlabNet # rubocop:disable Metrics/ClassLength
   def self.parse_who(who)
     if who.start_with?("key-")
       value = who.gsub("key-", "")
+
       raise ArgumentError, "who='#{who}' is invalid!" unless value =~ /\A[0-9]+\z/
+
       [:key_id, 'key_id', value]
     elsif who.start_with?("user-")
       value = who.gsub("user-", "")
+
       raise ArgumentError, "who='#{who}' is invalid!" unless value =~ /\A[0-9]+\z/
+
       [:user_id, 'user_id', value]
     elsif who.start_with?("username-")
       [:username, 'username', who.gsub("username-", "")]

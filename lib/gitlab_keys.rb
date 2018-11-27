@@ -107,7 +107,9 @@ class GitlabKeys # rubocop:disable Metrics/ClassLength
     open_auth_file('r') do |f|
       f.each_line do |line|
         matchd = line.match(/key-(\d+)/)
+
         next unless matchd
+
         puts matchd[1]
       end
     end
@@ -182,7 +184,7 @@ class GitlabKeys # rubocop:disable Metrics/ClassLength
   end
 
   def open_auth_file(mode)
-    open(auth_file, mode, 0o600) do |file|
+    File.open(auth_file, mode, 0o600) do |file|
       file.chmod(0o600)
       yield file
     end

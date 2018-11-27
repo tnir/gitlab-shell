@@ -121,6 +121,7 @@ class GitlabShell # rubocop:disable Metrics/ClassLength
     case @command
     when GIT_LFS_AUTHENTICATE_COMMAND
       raise DisallowedCommandError unless args.count >= 2
+
       @repo_name = args[1]
       case args[2]
       when 'download'
@@ -132,6 +133,7 @@ class GitlabShell # rubocop:disable Metrics/ClassLength
       end
     else
       raise DisallowedCommandError unless args.count == 2
+
       @repo_name = args.last
     end
 
