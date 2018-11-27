@@ -17,8 +17,8 @@ module URI
 
     # port is not allowed in URI
     DEFAULT_PORT = nil
-    def set_port(v)
-      return v unless v
+    def set_port(value)
+      return value unless value
 
       raise InvalidURIError, "http+unix:// cannot contain port"
     end
