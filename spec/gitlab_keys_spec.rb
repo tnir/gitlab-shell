@@ -191,7 +191,8 @@ describe GitlabKeys do
 
     context "without file writing" do
       before do
-        allow(gitlab_keys).to receive(:open)
+        allow(File).to receive(:open).with("#{ROOT_PATH}/config.yml", 'r:bom|utf-8').and_call_original
+        allow(File).to receive(:open).with('/home/git/.ssh/authorized_keys', 'r+', 384)
         allow(gitlab_keys).to receive(:lock).and_yield
       end
 
@@ -227,7 +228,8 @@ describe GitlabKeys do
     let(:gitlab_keys) { build_gitlab_keys('clear') }
 
     it "should return true" do
-      allow(gitlab_keys).to receive(:open)
+      allow(File).to receive(:open).with("#{ROOT_PATH}/config.yml", 'r:bom|utf-8').and_call_original
+      allow(File).to receive(:open).with('/home/git/.ssh/authorized_keys', 'w', 384)
       expect(gitlab_keys.send(:clear)).to be_truthy
     end
   end
@@ -242,7 +244,7 @@ describe GitlabKeys do
 
     it 'returns false if opening raises an exception' do
       expect(gitlab_keys).to receive(:open_auth_file).and_raise("imaginary error")
-      expect(gitlab_keys.exec).to eq(false)
+      expect { expect(gitlab_keys.exec).to eq(false) }.to output(/imaginary error/).to_stderr
     end
 
     it 'creates the keys file if it does not exist' do
