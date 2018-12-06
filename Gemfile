@@ -1,5 +1,9 @@
 source 'https://rubygems.org'
 
+group :development do
+  gem 'pry-byebug', '~> 3.6', require: false
+end
+
 group :development, :test do
   gem 'listen', '~> 0.5.0'
   gem 'rspec', '~> 3.8.0'
