@@ -48,15 +48,6 @@ rspec:ruby2.3:
   except:
     - tags
 
-#ruby 2.2
-rspec:ruby2.2:
-  image: ruby:2.2
-  <<: *rspec_definition
-  tags:
-    - ruby
-  except:
-    - tags
-
 .go: &go_definition
   before_script:
   - apt-get update -qq && apt-get install -y ruby ruby-dev
