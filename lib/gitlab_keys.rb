@@ -1,4 +1,5 @@
 require 'timeout'
+require 'open3'
 
 require_relative 'gitlab_config'
 require_relative 'gitlab_logger'
@@ -159,13 +160,17 @@ class GitlabKeys # rubocop:disable Metrics/ClassLength
   def check_permissions
     open_auth_file(File::RDWR | File::CREAT) { true }
   rescue StandardError => ex
-    puts "error: could not open #{auth_file}: #{ex}"
-    if File.exist?(auth_file)
-      system('ls', '-l', auth_file)
-    else
-      # Maybe the parent directory is not writable?
-      system('ls', '-ld', File.dirname(auth_file))
-    end
+    warn "error: could not open #{auth_file}: #{ex}"
+
+    cmd = if File.exist?(auth_file)
+            %W{ls -l #{auth_file}}
+          else
+            # Maybe the parent directory is not writable?
+            %W{ls -ld #{File.dirname(auth_file)}}
+          end
+
+    output, = Open3.capture2e(cmd.join(' '))
+    warn output
     false
   end
 
