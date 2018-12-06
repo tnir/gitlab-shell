@@ -102,7 +102,7 @@ module Action
     end
 
     def inform_client(str)
-      $stderr.puts(format_gitlab_output(str))
+      warn(format_gitlab_output(str))
     end
 
     def format_gitlab_output(str)

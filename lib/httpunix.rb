@@ -12,7 +12,7 @@ module URI
     def hostname
       # decode %XX from path to file
       v = host
-      URI.decode(v)
+      URI.decode(v) # rubocop:disable Lint/UriEscapeUnescape
     end
 
     # port is not allowed in URI
