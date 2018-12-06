@@ -8,7 +8,11 @@ describe :convert_log_level do
   end
 
   it "converts invalid log level to Logger::INFO" do
-    expect(Warning).to receive(:warn).at_least(:once)
+    case CURRENT_RUBY_VERSION
+    when '2.5'
+      expect(Warning).to receive(:warn).at_least(:once)
+    end
+
     expect(convert_log_level(:extreme)).to eq(Logger::INFO)
   end
 end
