@@ -5,6 +5,8 @@ require 'stringio'
 describe GitlabKeys do
   before do
     $logger = double('logger').as_null_object
+    # The default 'auth_file' value from config.yml.example is '/home/git/.ssh/authorized_keys'
+    allow(GitlabConfig).to receive_message_chain(:new, :auth_file).and_return('/home/git/.ssh/authorized_keys')
   end
 
   describe '.command' do
