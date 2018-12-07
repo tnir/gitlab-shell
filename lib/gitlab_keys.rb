@@ -160,7 +160,7 @@ class GitlabKeys # rubocop:disable Metrics/ClassLength
   def check_permissions
     open_auth_file(File::RDWR | File::CREAT) { true }
   rescue StandardError => ex
-    warn "error: could not open #{auth_file}: #{ex}"
+    puts "error: could not open #{auth_file}: #{ex}"
 
     cmd = if File.exist?(auth_file)
             %W{ls -l #{auth_file}}
@@ -170,7 +170,7 @@ class GitlabKeys # rubocop:disable Metrics/ClassLength
           end
 
     output, = Open3.capture2e(cmd.join(' '))
-    warn output
+    puts output
     false
   end
 

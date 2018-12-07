@@ -244,7 +244,7 @@ describe GitlabKeys do
 
     it 'returns false if opening raises an exception' do
       expect(gitlab_keys).to receive(:open_auth_file).and_raise("imaginary error")
-      expect { expect(gitlab_keys.exec).to eq(false) }.to output(/imaginary error/).to_stderr
+      expect { expect(gitlab_keys.exec).to eq(false) }.to output(/imaginary error/).to_stdout
     end
 
     it 'creates the keys file if it does not exist' do
