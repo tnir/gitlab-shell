@@ -7,8 +7,7 @@ require_relative 'gitlab_config'
 def convert_log_level(log_level)
   Logger.const_get(log_level.upcase)
 rescue NameError
-  warn "WARNING: Unrecognized log level #{log_level.inspect}."
-  warn "WARNING: Falling back to INFO."
+  warn "WARNING: Unrecognized log level #{log_level.inspect}. Falling back to INFO."
   Logger::INFO
 end
 
