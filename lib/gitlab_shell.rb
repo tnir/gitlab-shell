@@ -24,7 +24,7 @@ class GitlabShell # rubocop:disable Metrics/ClassLength
   }.freeze
 
   GIT_COMMANDS = (GITALY_COMMANDS.keys + [GIT_LFS_AUTHENTICATE_COMMAND]).freeze
-  TWO_FACTOR_RECOVERY_COMMAND = '2fa_recovery_codes'.freeze
+  TWO_FACTOR_RECOVERY_COMMAND = '2fa_recovery_codes'
   GL_PROTOCOL = 'ssh'
 
   attr_accessor :gl_id, :gl_repository, :repo_name, :command, :git_access, :git_protocol
