@@ -20,7 +20,7 @@ var (
 func init() {
 	binDir = filepath.Dir(os.Args[0])
 	rootDir = filepath.Dir(binDir)
-	reporter = &reporting.Reporter{Out: os.Stdout, ErrOut: os.Stderr}
+	reporter = &reporting.Reporter{Out: os.Stdout, In: os.Stdin, ErrOut: os.Stderr}
 }
 
 // rubyExec will never return. It either replaces the current process with a

@@ -5,6 +5,7 @@ import (
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/discover"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/fallback"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/reporting"
+	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/twofactorrecovery"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/config"
 )
 
@@ -30,6 +31,8 @@ func buildCommand(args *commandargs.CommandArgs, config *config.Config) Command 
 	switch args.CommandType {
 	case commandargs.Discover:
 		return &discover.Command{Config: config, Args: args}
+	case commandargs.TwoFactorRecovery:
+		return &twofactorrecovery.Command{Config: config, Args: args}
 	}
 
 	return nil
