@@ -12,23 +12,23 @@ import (
 )
 
 var (
-	binDir   string
-	rootDir  string
-	reporter *reporting.Reporter
+	binDir     string
+	rootDir    string
+	readWriter *reporting.ReadWriter
 )
 
 func init() {
 	binDir = filepath.Dir(os.Args[0])
 	rootDir = filepath.Dir(binDir)
-	reporter = &reporting.Reporter{Out: os.Stdout, In: os.Stdin, ErrOut: os.Stderr}
+	readWriter = &reporting.ReadWriter{Out: os.Stdout, In: os.Stdin, ErrOut: os.Stderr}
 }
 
 // rubyExec will never return. It either replaces the current process with a
 // Ruby interpreter, or outputs an error and kills the process.
 func execRuby() {
 	cmd := &fallback.Command{}
-	if err := cmd.Execute(reporter); err != nil {
-		fmt.Fprintf(reporter.ErrOut, "Failed to exec: %v\n", err)
+	if err := cmd.Execute(readWriter); err != nil {
+		fmt.Fprintf(readWriter.ErrOut, "Failed to exec: %v\n", err)
 		os.Exit(1)
 	}
 }
@@ -38,7 +38,7 @@ func main() {
 	// warning as this isn't something we can sustain indefinitely
 	config, err := config.NewFromDir(rootDir)
 	if err != nil {
-		fmt.Fprintln(reporter.ErrOut, "Failed to read config, falling back to gitlab-shell-ruby")
+		fmt.Fprintln(readWriter.ErrOut, "Failed to read config, falling back to gitlab-shell-ruby")
 		execRuby()
 	}
 
@@ -46,14 +46,14 @@ func main() {
 	if err != nil {
 		// For now this could happen if `SSH_CONNECTION` is not set on
 		// the environment
-		fmt.Fprintf(reporter.ErrOut, "%v\n", err)
+		fmt.Fprintf(readWriter.ErrOut, "%v\n", err)
 		os.Exit(1)
 	}
 
 	// The command will write to STDOUT on execution or replace the current
 	// process in case of the `fallback.Command`
-	if err = cmd.Execute(reporter); err != nil {
-		fmt.Fprintf(reporter.ErrOut, "%v\n", err)
+	if err = cmd.Execute(readWriter); err != nil {
+		fmt.Fprintf(readWriter.ErrOut, "%v\n", err)
 		os.Exit(1)
 	}
 }

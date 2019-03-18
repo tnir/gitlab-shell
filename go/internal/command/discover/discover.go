@@ -14,16 +14,16 @@ type Command struct {
 	Args   *commandargs.CommandArgs
 }
 
-func (c *Command) Execute(reporter *reporting.Reporter) error {
+func (c *Command) Execute(readWriter *reporting.ReadWriter) error {
 	response, err := c.getUserInfo()
 	if err != nil {
 		return fmt.Errorf("Failed to get username: %v", err)
 	}
 
 	if response.IsAnonymous() {
-		fmt.Fprintf(reporter.Out, "Welcome to GitLab, Anonymous!\n")
+		fmt.Fprintf(readWriter.Out, "Welcome to GitLab, Anonymous!\n")
 	} else {
-		fmt.Fprintf(reporter.Out, "Welcome to GitLab, @%s!\n", response.Username)
+		fmt.Fprintf(readWriter.Out, "Welcome to GitLab, @%s!\n", response.Username)
 	}
 
 	return nil

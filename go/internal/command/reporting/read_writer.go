@@ -2,7 +2,7 @@ package reporting
 
 import "io"
 
-type Reporter struct {
+type ReadWriter struct {
 	Out    io.Writer
 	In     io.Reader
 	ErrOut io.Writer

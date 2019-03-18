@@ -1,4 +1,4 @@
-package twofactorrecoveryclient
+package twofactorrecover
 
 import (
 	"encoding/json"
@@ -22,7 +22,7 @@ type Response struct {
 	Message       string   `json:"message"`
 }
 
-func GetClient(config *config.Config) (*Client, error) {
+func NewClient(config *config.Config) (*Client, error) {
 	client, err := gitlabnet.GetClient(config)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating http client: %v", err)
@@ -42,10 +42,11 @@ func (c *Client) GetRecoveryCodes(gitlabKeyId string) ([]string, error) {
 		return nil, err
 	}
 
+	defer response.Body.Close()
 	parsedResponse, err := c.parseResponse(response)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Parsing failed")
 	}
 
 	if parsedResponse.Success {
@@ -56,7 +57,6 @@ func (c *Client) GetRecoveryCodes(gitlabKeyId string) ([]string, error) {
 }
 
 func (c *Client) parseResponse(resp *http.Response) (*Response, error) {
-	defer resp.Body.Close()
 	parsedResponse := &Response{}
 
 	if err := json.NewDecoder(resp.Body).Decode(parsedResponse); err != nil {

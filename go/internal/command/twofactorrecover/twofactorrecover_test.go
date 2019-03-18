@@ -1,4 +1,4 @@
-package twofactorrecovery
+package twofactorrecover
 
 import (
 	"bytes"
@@ -92,7 +92,7 @@ func TestExecute(t *testing.T) {
 			arguments: &commandargs.CommandArgs{},
 			expectedOutput: "Are you sure you want to generate new two-factor recovery codes?\n" +
 				"Any existing recovery codes you saved will be invalidated. (yes/no)\n\n" +
-				"An error occurred while trying to generate new recovery codes.\n\n",
+				"An error occurred while trying to generate new recovery codes.\nFailed to get key id\n",
 		},
 	}
 
@@ -103,7 +103,7 @@ func TestExecute(t *testing.T) {
 
 			cmd := &Command{Config: testConfig, Args: tc.arguments}
 
-			err := cmd.Execute(&reporting.Reporter{Out: output, In: input})
+			err := cmd.Execute(&reporting.ReadWriter{Out: output, In: input})
 
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expectedOutput, output.String())

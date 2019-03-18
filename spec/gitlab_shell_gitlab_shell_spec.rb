@@ -117,7 +117,7 @@ describe 'bin/gitlab-shell' do
       write_config(
         "gitlab_url" => "http+unix://#{CGI.escape(tmp_socket_path)}",
         "migration" => { "enabled" => true,
-                        "features" => ["discover", "2fa_recovery_codes"] }
+                        "features" => ["discover"] }
       )
     end
 

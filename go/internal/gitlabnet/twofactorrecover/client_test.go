@@ -1,4 +1,4 @@
-package twofactorrecoveryclient
+package twofactorrecover
 
 import (
 	"encoding/json"
@@ -8,7 +8,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/config"
+	"gitlab.com/gitlab-org/gitlab-shell/go/internal/gitlabnet"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/gitlabnet/testserver"
 )
 
@@ -35,6 +37,16 @@ func init() {
 						"message": "missing user",
 					}
 					json.NewEncoder(w).Encode(body)
+				} else if r.URL.Query().Get("key_id") == "2" {
+					w.WriteHeader(http.StatusForbidden)
+					body := &gitlabnet.ErrorResponse{
+						Message: "Not allowed!",
+					}
+					json.NewEncoder(w).Encode(body)
+				} else if r.URL.Query().Get("key_id") == "3" {
+					w.Write([]byte("{ \"message\": \"broken json!\""))
+				} else if r.URL.Query().Get("key_id") == "4" {
+					w.WriteHeader(http.StatusForbidden)
 				} else {
 					fmt.Fprint(w, "null")
 				}
@@ -60,11 +72,47 @@ func TestMissingUser(t *testing.T) {
 	assert.Equal(t, "missing user", err.Error())
 }
 
+func TestErrorResponses(t *testing.T) {
+	client, cleanup := setup(t)
+	defer cleanup()
+
+	testCases := []struct {
+		desc          string
+		fakeId        string
+		expectedError string
+	}{
+		{
+			desc:          "A response with an error message",
+			fakeId:        "2",
+			expectedError: "Not allowed!",
+		},
+		{
+			desc:          "A response with bad JSON",
+			fakeId:        "3",
+			expectedError: "Parsing failed",
+		},
+		{
+			desc:          "An error response without message",
+			fakeId:        "4",
+			expectedError: "Internal API error (403)",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			resp, err := client.GetRecoveryCodes(tc.fakeId)
+
+			assert.EqualError(t, err, tc.expectedError)
+			assert.Nil(t, resp)
+		})
+	}
+}
+
 func setup(t *testing.T) (*Client, func()) {
 	cleanup, err := testserver.StartSocketHttpServer(requests)
 	require.NoError(t, err)
 
-	client, err := GetClient(testConfig)
+	client, err := NewClient(testConfig)
 	require.NoError(t, err)
 
 	return client, cleanup

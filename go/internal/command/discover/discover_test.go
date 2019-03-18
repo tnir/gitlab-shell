@@ -82,7 +82,7 @@ func TestExecute(t *testing.T) {
 			cmd := &Command{Config: testConfig, Args: tc.arguments}
 			buffer := &bytes.Buffer{}
 
-			err := cmd.Execute(&reporting.Reporter{Out: buffer})
+			err := cmd.Execute(&reporting.ReadWriter{Out: buffer})
 
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expectedOutput, buffer.String())
@@ -122,7 +122,7 @@ func TestFailingExecute(t *testing.T) {
 			cmd := &Command{Config: testConfig, Args: tc.arguments}
 			buffer := &bytes.Buffer{}
 
-			err := cmd.Execute(&reporting.Reporter{Out: buffer})
+			err := cmd.Execute(&reporting.ReadWriter{Out: buffer})
 
 			assert.Empty(t, buffer.String())
 			assert.EqualError(t, err, tc.expectedError)

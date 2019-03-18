@@ -9,8 +9,8 @@ import (
 type CommandType string
 
 const (
-	Discover          CommandType = "discover"
-	TwoFactorRecovery CommandType = "2fa_recovery_codes"
+	Discover         CommandType = "discover"
+	TwoFactorRecover CommandType = "2fa_recovery_codes"
 )
 
 var (
@@ -81,7 +81,7 @@ func (c *CommandArgs) parseCommand(commandString string) {
 		c.CommandType = Discover
 	}
 
-	if CommandType(commandString) == TwoFactorRecovery {
-		c.CommandType = TwoFactorRecovery
+	if CommandType(commandString) == TwoFactorRecover {
+		c.CommandType = TwoFactorRecover
 	}
 }
