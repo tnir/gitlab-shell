@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/config"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/gitlabnet"
@@ -22,6 +21,10 @@ type Response struct {
 	Message       string   `json:"message"`
 }
 
+type RequestBody struct {
+	KeyId string `json:"key_id"`
+}
+
 func NewClient(config *config.Config) (*Client, error) {
 	client, err := gitlabnet.GetClient(config)
 	if err != nil {
@@ -32,11 +35,8 @@ func NewClient(config *config.Config) (*Client, error) {
 }
 
 func (c *Client) GetRecoveryCodes(gitlabKeyId string) ([]string, error) {
-	values := url.Values{}
-	values.Add("key_id", gitlabKeyId)
-
-	path := "/two_factor_recovery_codes?" + values.Encode()
-	response, err := c.client.Get(path)
+	values := RequestBody{KeyId: gitlabKeyId}
+	response, err := c.client.Post("/two_factor_recovery_codes", values)
 
 	if err != nil {
 		return nil, err

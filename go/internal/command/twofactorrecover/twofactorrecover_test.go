@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"testing"
 
@@ -22,22 +23,31 @@ var (
 		{
 			Path: "/api/v4/internal/two_factor_recovery_codes",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
-				if r.URL.Query().Get("key_id") == "1" {
+				b, _ := ioutil.ReadAll(r.Body)
+				defer r.Body.Close()
+
+				var bodyRaw map[string]*json.RawMessage
+				json.Unmarshal(b, &bodyRaw)
+
+				var keyId string
+				json.Unmarshal(*bodyRaw["key_id"], &keyId)
+
+				switch keyId {
+				case "1":
 					body := map[string]interface{}{
 						"success":        true,
 						"recovery_codes": [2]string{"recovery", "codes"},
 					}
 					json.NewEncoder(w).Encode(body)
-				} else if r.URL.Query().Get("key_id") == "broken_message" {
+				case "broken_message":
 					body := map[string]interface{}{
 						"success": false,
 						"message": "Forbidden!",
 					}
-					w.WriteHeader(http.StatusForbidden)
 					json.NewEncoder(w).Encode(body)
-				} else if r.URL.Query().Get("key_id") == "broken" {
+				case "broken":
 					w.WriteHeader(http.StatusInternalServerError)
-				} else {
+				default:
 					fmt.Fprint(w, "null")
 				}
 			},

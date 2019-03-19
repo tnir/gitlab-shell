@@ -1,7 +1,9 @@
 package gitlabnet
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"net"
 	"net/http"
 	"strings"
@@ -38,6 +40,24 @@ func (c *GitlabSocketClient) Get(path string) (*http.Response, error) {
 	path = normalizePath(path)
 
 	request, err := http.NewRequest("GET", socketBaseUrl+path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return doRequest(c.httpClient, c.config, request)
+}
+
+func (c *GitlabSocketClient) Post(path string, data interface{}) (*http.Response, error) {
+	path = normalizePath(path)
+
+	buffer := new(bytes.Buffer)
+	if err := json.NewEncoder(buffer).Encode(data); err != nil {
+		return nil, err
+	}
+
+	request, err := http.NewRequest("POST", socketBaseUrl+path, buffer)
+	request.Header.Add("Content-Type", "application/json")
+
 	if err != nil {
 		return nil, err
 	}

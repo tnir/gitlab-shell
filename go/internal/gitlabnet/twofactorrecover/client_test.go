@@ -3,6 +3,7 @@ package twofactorrecover
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"testing"
 
@@ -25,29 +26,39 @@ func init() {
 		{
 			Path: "/api/v4/internal/two_factor_recovery_codes",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
-				if r.URL.Query().Get("key_id") == "1" {
+				b, _ := ioutil.ReadAll(r.Body)
+				defer r.Body.Close()
+
+				var bodyRaw map[string]*json.RawMessage
+				json.Unmarshal(b, &bodyRaw)
+
+				var keyId string
+				json.Unmarshal(*bodyRaw["key_id"], &keyId)
+
+				switch keyId {
+				case "0":
 					body := map[string]interface{}{
 						"success":        true,
 						"recovery_codes": [2]string{"recovery 1", "codes 1"},
 					}
 					json.NewEncoder(w).Encode(body)
-				} else if r.URL.Query().Get("key_id") == "0" {
+				case "1":
 					body := map[string]interface{}{
 						"success": false,
 						"message": "missing user",
 					}
 					json.NewEncoder(w).Encode(body)
-				} else if r.URL.Query().Get("key_id") == "2" {
+				case "2":
 					w.WriteHeader(http.StatusForbidden)
 					body := &gitlabnet.ErrorResponse{
 						Message: "Not allowed!",
 					}
 					json.NewEncoder(w).Encode(body)
-				} else if r.URL.Query().Get("key_id") == "3" {
+				case "3":
 					w.Write([]byte("{ \"message\": \"broken json!\""))
-				} else if r.URL.Query().Get("key_id") == "4" {
+				case "4":
 					w.WriteHeader(http.StatusForbidden)
-				} else {
+				default:
 					fmt.Fprint(w, "null")
 				}
 			},
@@ -59,7 +70,7 @@ func TestGetRecoveryCodes(t *testing.T) {
 	client, cleanup := setup(t)
 	defer cleanup()
 
-	result, err := client.GetRecoveryCodes("1")
+	result, err := client.GetRecoveryCodes("0")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"recovery 1", "codes 1"}, result)
 }
@@ -68,7 +79,7 @@ func TestMissingUser(t *testing.T) {
 	client, cleanup := setup(t)
 	defer cleanup()
 
-	_, err := client.GetRecoveryCodes("0")
+	_, err := client.GetRecoveryCodes("1")
 	assert.Equal(t, "missing user", err.Error())
 }
 

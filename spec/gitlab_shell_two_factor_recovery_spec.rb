@@ -10,7 +10,9 @@ describe 'bin/gitlab-shell 2fa_recovery_codes' do
       res.content_type = 'application/json'
       res.status = 200
 
-      if req.query['key_id'] == '100'
+      key_id = req.query['key_id'] || JSON.parse(req.body)['key_id']
+
+      if key_id == '100'
         res.body = '{"success":true, "recovery_codes": ["1", "2"]}'
       else
         res.body = '{"success":false, "message": "Forbidden!"}'
