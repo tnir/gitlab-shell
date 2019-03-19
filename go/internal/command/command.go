@@ -4,13 +4,13 @@ import (
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/commandargs"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/discover"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/fallback"
-	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/reporting"
+	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/readwriter"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/twofactorrecover"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/config"
 )
 
 type Command interface {
-	Execute(*reporting.ReadWriter) error
+	Execute(*readwriter.ReadWriter) error
 }
 
 func New(arguments []string, config *config.Config) (Command, error) {

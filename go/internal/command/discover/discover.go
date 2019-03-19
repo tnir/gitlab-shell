@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/commandargs"
-	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/reporting"
+	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/readwriter"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/config"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/gitlabnet/discover"
 )
@@ -14,7 +14,7 @@ type Command struct {
 	Args   *commandargs.CommandArgs
 }
 
-func (c *Command) Execute(readWriter *reporting.ReadWriter) error {
+func (c *Command) Execute(readWriter *readwriter.ReadWriter) error {
 	response, err := c.getUserInfo()
 	if err != nil {
 		return fmt.Errorf("Failed to get username: %v", err)

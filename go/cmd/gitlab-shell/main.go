@@ -7,20 +7,20 @@ import (
 
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/fallback"
-	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/reporting"
+	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/readwriter"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/config"
 )
 
 var (
 	binDir     string
 	rootDir    string
-	readWriter *reporting.ReadWriter
+	readWriter *readwriter.ReadWriter
 )
 
 func init() {
 	binDir = filepath.Dir(os.Args[0])
 	rootDir = filepath.Dir(binDir)
-	readWriter = &reporting.ReadWriter{Out: os.Stdout, In: os.Stdin, ErrOut: os.Stderr}
+	readWriter = &readwriter.ReadWriter{Out: os.Stdout, In: os.Stdin, ErrOut: os.Stderr}
 }
 
 // rubyExec will never return. It either replaces the current process with a

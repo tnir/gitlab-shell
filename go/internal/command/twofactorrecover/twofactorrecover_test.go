@@ -9,8 +9,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/commandargs"
-	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/reporting"
+	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/readwriter"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/config"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/gitlabnet/testserver"
 )
@@ -52,11 +53,13 @@ func TestExecute(t *testing.T) {
 	testCases := []struct {
 		desc           string
 		arguments      *commandargs.CommandArgs
+		answer         string
 		expectedOutput string
 	}{
 		{
 			desc:      "With a known key id",
 			arguments: &commandargs.CommandArgs{GitlabKeyId: "1"},
+			answer:    "yes\n",
 			expectedOutput: "Are you sure you want to generate new two-factor recovery codes?\n" +
 				"Any existing recovery codes you saved will be invalidated. (yes/no)\n\n" +
 				"Your two-factor authentication recovery codes are:\n\nrecovery\ncodes\n\n" +
@@ -67,6 +70,7 @@ func TestExecute(t *testing.T) {
 		{
 			desc:      "With an unknown key",
 			arguments: &commandargs.CommandArgs{GitlabKeyId: "-1"},
+			answer:    "yes\n",
 			expectedOutput: "Are you sure you want to generate new two-factor recovery codes?\n" +
 				"Any existing recovery codes you saved will be invalidated. (yes/no)\n\n" +
 				"An error occurred while trying to generate new recovery codes.\n\n",
@@ -74,6 +78,7 @@ func TestExecute(t *testing.T) {
 		{
 			desc:      "With API returns an error",
 			arguments: &commandargs.CommandArgs{GitlabKeyId: "broken_message"},
+			answer:    "yes\n",
 			expectedOutput: "Are you sure you want to generate new two-factor recovery codes?\n" +
 				"Any existing recovery codes you saved will be invalidated. (yes/no)\n\n" +
 				"An error occurred while trying to generate new recovery codes.\n" +
@@ -82,6 +87,7 @@ func TestExecute(t *testing.T) {
 		{
 			desc:      "With API fails",
 			arguments: &commandargs.CommandArgs{GitlabKeyId: "broken"},
+			answer:    "yes\n",
 			expectedOutput: "Are you sure you want to generate new two-factor recovery codes?\n" +
 				"Any existing recovery codes you saved will be invalidated. (yes/no)\n\n" +
 				"An error occurred while trying to generate new recovery codes.\n" +
@@ -90,20 +96,29 @@ func TestExecute(t *testing.T) {
 		{
 			desc:      "With missing arguments",
 			arguments: &commandargs.CommandArgs{},
+			answer:    "yes\n",
 			expectedOutput: "Are you sure you want to generate new two-factor recovery codes?\n" +
 				"Any existing recovery codes you saved will be invalidated. (yes/no)\n\n" +
 				"An error occurred while trying to generate new recovery codes.\nFailed to get key id\n",
+		},
+		{
+			desc:      "With negative answer",
+			arguments: &commandargs.CommandArgs{},
+			answer:    "no\n",
+			expectedOutput: "Are you sure you want to generate new two-factor recovery codes?\n" +
+				"Any existing recovery codes you saved will be invalidated. (yes/no)\n\n" +
+				"New recovery codes have *not* been generated. Existing codes will remain valid.\n",
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			output := &bytes.Buffer{}
-			input := bytes.NewBufferString("yes\n")
+			input := bytes.NewBufferString(tc.answer)
 
 			cmd := &Command{Config: testConfig, Args: tc.arguments}
 
-			err := cmd.Execute(&reporting.ReadWriter{Out: output, In: input})
+			err := cmd.Execute(&readwriter.ReadWriter{Out: output, In: input})
 
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expectedOutput, output.String())

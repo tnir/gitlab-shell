@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/commandargs"
-	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/reporting"
+	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/readwriter"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/config"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/gitlabnet/twofactorrecover"
 )
@@ -15,7 +15,7 @@ type Command struct {
 	Args   *commandargs.CommandArgs
 }
 
-func (c *Command) Execute(readWriter *reporting.ReadWriter) error {
+func (c *Command) Execute(readWriter *readwriter.ReadWriter) error {
 	if c.canContinue(readWriter) {
 		c.displayRecoveryCodes(readWriter)
 	} else {
@@ -25,7 +25,7 @@ func (c *Command) Execute(readWriter *reporting.ReadWriter) error {
 	return nil
 }
 
-func (c *Command) canContinue(readWriter *reporting.ReadWriter) bool {
+func (c *Command) canContinue(readWriter *readwriter.ReadWriter) bool {
 	question :=
 		"Are you sure you want to generate new two-factor recovery codes?\n" +
 			"Any existing recovery codes you saved will be invalidated. (yes/no)"
@@ -37,7 +37,7 @@ func (c *Command) canContinue(readWriter *reporting.ReadWriter) bool {
 	return (answer == "yes")
 }
 
-func (c *Command) displayRecoveryCodes(readWriter *reporting.ReadWriter) {
+func (c *Command) displayRecoveryCodes(readWriter *readwriter.ReadWriter) {
 	codes, err := c.getRecoveryCodes()
 
 	if err == nil {
