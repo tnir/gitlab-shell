@@ -3,7 +3,6 @@ package twofactorrecover
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -15,6 +14,7 @@ import (
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/readwriter"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/config"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/gitlabnet/testserver"
+	"gitlab.com/gitlab-org/gitlab-shell/go/internal/gitlabnet/twofactorrecover"
 )
 
 var (
@@ -26,20 +26,17 @@ var (
 				b, _ := ioutil.ReadAll(r.Body)
 				defer r.Body.Close()
 
-				var bodyRaw map[string]*json.RawMessage
-				json.Unmarshal(b, &bodyRaw)
+				var requestBody *twofactorrecover.RequestBody
+				json.Unmarshal(b, &requestBody)
 
-				var keyId string
-				json.Unmarshal(*bodyRaw["key_id"], &keyId)
-
-				switch keyId {
+				switch requestBody.KeyId {
 				case "1":
 					body := map[string]interface{}{
 						"success":        true,
 						"recovery_codes": [2]string{"recovery", "codes"},
 					}
 					json.NewEncoder(w).Encode(body)
-				case "broken_message":
+				case "forbidden":
 					body := map[string]interface{}{
 						"success": false,
 						"message": "Forbidden!",
@@ -47,8 +44,6 @@ var (
 					json.NewEncoder(w).Encode(body)
 				case "broken":
 					w.WriteHeader(http.StatusInternalServerError)
-				default:
-					fmt.Fprint(w, "null")
 				}
 			},
 		},
@@ -78,16 +73,16 @@ func TestExecute(t *testing.T) {
 				"a new device so you do not lose access to your account again.\n",
 		},
 		{
-			desc:      "With an unknown key",
+			desc:      "With bad response",
 			arguments: &commandargs.CommandArgs{GitlabKeyId: "-1"},
 			answer:    "yes\n",
 			expectedOutput: "Are you sure you want to generate new two-factor recovery codes?\n" +
 				"Any existing recovery codes you saved will be invalidated. (yes/no)\n\n" +
-				"An error occurred while trying to generate new recovery codes.\n\n",
+				"An error occurred while trying to generate new recovery codes.\nParsing failed\n",
 		},
 		{
 			desc:      "With API returns an error",
-			arguments: &commandargs.CommandArgs{GitlabKeyId: "broken_message"},
+			arguments: &commandargs.CommandArgs{GitlabKeyId: "forbidden"},
 			answer:    "yes\n",
 			expectedOutput: "Are you sure you want to generate new two-factor recovery codes?\n" +
 				"Any existing recovery codes you saved will be invalidated. (yes/no)\n\n" +

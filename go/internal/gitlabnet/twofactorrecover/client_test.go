@@ -2,7 +2,6 @@ package twofactorrecover
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -29,13 +28,10 @@ func init() {
 				b, _ := ioutil.ReadAll(r.Body)
 				defer r.Body.Close()
 
-				var bodyRaw map[string]*json.RawMessage
-				json.Unmarshal(b, &bodyRaw)
+				var requestBody *RequestBody
+				json.Unmarshal(b, &requestBody)
 
-				var keyId string
-				json.Unmarshal(*bodyRaw["key_id"], &keyId)
-
-				switch keyId {
+				switch requestBody.KeyId {
 				case "0":
 					body := map[string]interface{}{
 						"success":        true,
@@ -58,8 +54,6 @@ func init() {
 					w.Write([]byte("{ \"message\": \"broken json!\""))
 				case "4":
 					w.WriteHeader(http.StatusForbidden)
-				default:
-					fmt.Fprint(w, "null")
 				}
 			},
 		},
