@@ -50,12 +50,12 @@ func (c *GitlabSocketClient) Get(path string) (*http.Response, error) {
 func (c *GitlabSocketClient) Post(path string, data interface{}) (*http.Response, error) {
 	path = normalizePath(path)
 
-	buffer := new(bytes.Buffer)
-	if err := json.NewEncoder(buffer).Encode(data); err != nil {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
 		return nil, err
 	}
 
-	request, err := http.NewRequest("POST", socketBaseUrl+path, buffer)
+	request, err := http.NewRequest("POST", socketBaseUrl+path, bytes.NewReader(jsonData))
 	request.Header.Add("Content-Type", "application/json")
 
 	if err != nil {

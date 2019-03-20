@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/config"
@@ -58,8 +59,13 @@ func (c *Client) GetRecoveryCodes(gitlabKeyId string) ([]string, error) {
 
 func (c *Client) parseResponse(resp *http.Response) (*Response, error) {
 	parsedResponse := &Response{}
+	body, err := ioutil.ReadAll(resp.Body)
 
-	if err := json.NewDecoder(resp.Body).Decode(parsedResponse); err != nil {
+	if err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(body, parsedResponse); err != nil {
 		return nil, err
 	} else {
 		return parsedResponse, nil

@@ -19,14 +19,24 @@ func TestClients(t *testing.T) {
 		{
 			Path: "/api/v4/internal/hello",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
+				if r.Method != http.MethodGet {
+					w.WriteHeader(http.StatusMethodNotAllowed)
+				}
+
 				fmt.Fprint(w, "Hello")
 			},
 		},
 		{
 			Path: "/api/v4/internal/post_endpoint",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
-				b, _ := ioutil.ReadAll(r.Body)
+				if r.Method != http.MethodPost {
+					w.WriteHeader(http.StatusMethodNotAllowed)
+				}
+
+				b, err := ioutil.ReadAll(r.Body)
 				defer r.Body.Close()
+
+				require.NoError(t, err)
 
 				fmt.Fprint(w, "Echo: "+string(b))
 			},
@@ -111,7 +121,7 @@ func testSuccessfulPost(t *testing.T, client GitlabClient) {
 
 		responseBody, err := ioutil.ReadAll(response.Body)
 		assert.NoError(t, err)
-		assert.Equal(t, string(responseBody), "Echo: {\"key\":\"value\"}\n")
+		assert.Equal(t, "Echo: {\"key\":\"value\"}", string(responseBody))
 	})
 }
 

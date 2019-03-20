@@ -34,7 +34,7 @@ func (c *Command) canContinue(readWriter *readwriter.ReadWriter) bool {
 	var answer string
 	fmt.Fscanln(readWriter.In, &answer)
 
-	return (answer == "yes")
+	return answer == "yes"
 }
 
 func (c *Command) displayRecoveryCodes(readWriter *readwriter.ReadWriter) {

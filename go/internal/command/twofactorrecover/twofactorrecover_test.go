@@ -18,13 +18,20 @@ import (
 )
 
 var (
+	testConfig *config.Config
+	requests   []testserver.TestRequestHandler
+)
+
+func setup(t *testing.T) {
 	testConfig = &config.Config{GitlabUrl: "http+unix://" + testserver.TestSocket}
-	requests   = []testserver.TestRequestHandler{
+	requests = []testserver.TestRequestHandler{
 		{
 			Path: "/api/v4/internal/two_factor_recovery_codes",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
-				b, _ := ioutil.ReadAll(r.Body)
+				b, err := ioutil.ReadAll(r.Body)
 				defer r.Body.Close()
+
+				require.NoError(t, err)
 
 				var requestBody *twofactorrecover.RequestBody
 				json.Unmarshal(b, &requestBody)
@@ -48,9 +55,17 @@ var (
 			},
 		},
 	}
+}
+
+const (
+	question = "Are you sure you want to generate new two-factor recovery codes?\n" +
+		"Any existing recovery codes you saved will be invalidated. (yes/no)\n\n"
+	errorHeader = "An error occurred while trying to generate new recovery codes.\n"
 )
 
 func TestExecute(t *testing.T) {
+	setup(t)
+
 	cleanup, err := testserver.StartSocketHttpServer(requests)
 	require.NoError(t, err)
 	defer cleanup()
@@ -65,53 +80,41 @@ func TestExecute(t *testing.T) {
 			desc:      "With a known key id",
 			arguments: &commandargs.CommandArgs{GitlabKeyId: "1"},
 			answer:    "yes\n",
-			expectedOutput: "Are you sure you want to generate new two-factor recovery codes?\n" +
-				"Any existing recovery codes you saved will be invalidated. (yes/no)\n\n" +
+			expectedOutput: question +
 				"Your two-factor authentication recovery codes are:\n\nrecovery\ncodes\n\n" +
 				"During sign in, use one of the codes above when prompted for\n" +
 				"your two-factor code. Then, visit your Profile Settings and add\n" +
 				"a new device so you do not lose access to your account again.\n",
 		},
 		{
-			desc:      "With bad response",
-			arguments: &commandargs.CommandArgs{GitlabKeyId: "-1"},
-			answer:    "yes\n",
-			expectedOutput: "Are you sure you want to generate new two-factor recovery codes?\n" +
-				"Any existing recovery codes you saved will be invalidated. (yes/no)\n\n" +
-				"An error occurred while trying to generate new recovery codes.\nParsing failed\n",
+			desc:           "With bad response",
+			arguments:      &commandargs.CommandArgs{GitlabKeyId: "-1"},
+			answer:         "yes\n",
+			expectedOutput: question + errorHeader + "Parsing failed\n",
 		},
 		{
-			desc:      "With API returns an error",
-			arguments: &commandargs.CommandArgs{GitlabKeyId: "forbidden"},
-			answer:    "yes\n",
-			expectedOutput: "Are you sure you want to generate new two-factor recovery codes?\n" +
-				"Any existing recovery codes you saved will be invalidated. (yes/no)\n\n" +
-				"An error occurred while trying to generate new recovery codes.\n" +
-				"Forbidden!\n",
+			desc:           "With API returns an error",
+			arguments:      &commandargs.CommandArgs{GitlabKeyId: "forbidden"},
+			answer:         "yes\n",
+			expectedOutput: question + errorHeader + "Forbidden!\n",
 		},
 		{
-			desc:      "With API fails",
-			arguments: &commandargs.CommandArgs{GitlabKeyId: "broken"},
-			answer:    "yes\n",
-			expectedOutput: "Are you sure you want to generate new two-factor recovery codes?\n" +
-				"Any existing recovery codes you saved will be invalidated. (yes/no)\n\n" +
-				"An error occurred while trying to generate new recovery codes.\n" +
-				"Internal API error (500)\n",
+			desc:           "With API fails",
+			arguments:      &commandargs.CommandArgs{GitlabKeyId: "broken"},
+			answer:         "yes\n",
+			expectedOutput: question + errorHeader + "Internal API error (500)\n",
 		},
 		{
-			desc:      "With missing arguments",
-			arguments: &commandargs.CommandArgs{},
-			answer:    "yes\n",
-			expectedOutput: "Are you sure you want to generate new two-factor recovery codes?\n" +
-				"Any existing recovery codes you saved will be invalidated. (yes/no)\n\n" +
-				"An error occurred while trying to generate new recovery codes.\nFailed to get key id\n",
+			desc:           "With missing arguments",
+			arguments:      &commandargs.CommandArgs{},
+			answer:         "yes\n",
+			expectedOutput: question + errorHeader + "Failed to get key id\n",
 		},
 		{
 			desc:      "With negative answer",
 			arguments: &commandargs.CommandArgs{},
 			answer:    "no\n",
-			expectedOutput: "Are you sure you want to generate new two-factor recovery codes?\n" +
-				"Any existing recovery codes you saved will be invalidated. (yes/no)\n\n" +
+			expectedOutput: question +
 				"New recovery codes have *not* been generated. Existing codes will remain valid.\n",
 		},
 	}

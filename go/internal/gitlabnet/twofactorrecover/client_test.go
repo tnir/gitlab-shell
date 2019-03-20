@@ -19,14 +19,16 @@ var (
 	requests   []testserver.TestRequestHandler
 )
 
-func init() {
+func initialize(t *testing.T) {
 	testConfig = &config.Config{GitlabUrl: "http+unix://" + testserver.TestSocket}
 	requests = []testserver.TestRequestHandler{
 		{
 			Path: "/api/v4/internal/two_factor_recovery_codes",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
-				b, _ := ioutil.ReadAll(r.Body)
+				b, err := ioutil.ReadAll(r.Body)
 				defer r.Body.Close()
+
+				require.NoError(t, err)
 
 				var requestBody *RequestBody
 				json.Unmarshal(b, &requestBody)
@@ -114,6 +116,7 @@ func TestErrorResponses(t *testing.T) {
 }
 
 func setup(t *testing.T) (*Client, func()) {
+	initialize(t)
 	cleanup, err := testserver.StartSocketHttpServer(requests)
 	require.NoError(t, err)
 
