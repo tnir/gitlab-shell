@@ -7,8 +7,10 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/commandargs"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/config"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/gitlabnet"
+	"gitlab.com/gitlab-org/gitlab-shell/go/internal/gitlabnet/discover"
 )
 
 type Client struct {
@@ -23,7 +25,8 @@ type Response struct {
 }
 
 type RequestBody struct {
-	KeyId string `json:"key_id"`
+	KeyId  string `json:"key_id,omitempty"`
+	UserId int64  `json:"user_id,omitempty"`
 }
 
 func NewClient(config *config.Config) (*Client, error) {
@@ -35,9 +38,14 @@ func NewClient(config *config.Config) (*Client, error) {
 	return &Client{config: config, client: client}, nil
 }
 
-func (c *Client) GetRecoveryCodes(gitlabKeyId string) ([]string, error) {
-	values := RequestBody{KeyId: gitlabKeyId}
-	response, err := c.client.Post("/two_factor_recovery_codes", values)
+func (c *Client) GetRecoveryCodes(args *commandargs.CommandArgs) ([]string, error) {
+	requestBody, err := c.getRequestBody(args)
+
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := c.client.Post("/two_factor_recovery_codes", requestBody)
 
 	if err != nil {
 		return nil, err
@@ -70,4 +78,27 @@ func (c *Client) parseResponse(resp *http.Response) (*Response, error) {
 	} else {
 		return parsedResponse, nil
 	}
+}
+
+func (c *Client) getRequestBody(args *commandargs.CommandArgs) (*RequestBody, error) {
+	client, err := discover.NewClient(c.config)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var requestBody *RequestBody
+	if args.GitlabKeyId != "" {
+		requestBody = &RequestBody{KeyId: args.GitlabKeyId}
+	} else {
+		userInfo, err := client.GetByCommandArgs(args)
+
+		if err != nil {
+			return nil, err
+		}
+
+		requestBody = &RequestBody{UserId: userInfo.UserId}
+	}
+
+	return requestBody, nil
 }

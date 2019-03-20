@@ -54,15 +54,11 @@ func (c *Command) displayRecoveryCodes(readWriter *readwriter.ReadWriter) {
 }
 
 func (c *Command) getRecoveryCodes() ([]string, error) {
-	if c.Args.GitlabKeyId == "" {
-		return nil, fmt.Errorf("Failed to get key id")
-	}
-
 	client, err := twofactorrecover.NewClient(c.Config)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return client.GetRecoveryCodes(c.Args.GitlabKeyId)
+	return client.GetRecoveryCodes(c.Args)
 }

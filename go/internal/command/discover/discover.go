@@ -35,13 +35,5 @@ func (c *Command) getUserInfo() (*discover.Response, error) {
 		return nil, err
 	}
 
-	if c.Args.GitlabKeyId != "" {
-		return client.GetByKeyId(c.Args.GitlabKeyId)
-	} else if c.Args.GitlabUsername != "" {
-		return client.GetByUsername(c.Args.GitlabUsername)
-	} else {
-		// There was no 'who' information, this  matches the ruby error
-		// message.
-		return nil, fmt.Errorf("who='' is invalid")
-	}
+	return client.GetByCommandArgs(c.Args)
 }

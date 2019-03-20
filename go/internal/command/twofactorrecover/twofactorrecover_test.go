@@ -108,7 +108,7 @@ func TestExecute(t *testing.T) {
 			desc:           "With missing arguments",
 			arguments:      &commandargs.CommandArgs{},
 			answer:         "yes\n",
-			expectedOutput: question + errorHeader + "Failed to get key id\n",
+			expectedOutput: question + errorHeader + "who='' is invalid\n",
 		},
 		{
 			desc:      "With negative answer",

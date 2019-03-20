@@ -9,8 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"gitlab.com/gitlab-org/gitlab-shell/go/internal/command/commandargs"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/config"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/gitlabnet"
+	"gitlab.com/gitlab-org/gitlab-shell/go/internal/gitlabnet/discover"
 	"gitlab.com/gitlab-org/gitlab-shell/go/internal/gitlabnet/testserver"
 )
 
@@ -57,25 +59,56 @@ func initialize(t *testing.T) {
 				case "4":
 					w.WriteHeader(http.StatusForbidden)
 				}
+
+				if requestBody.UserId == 1 {
+					body := map[string]interface{}{
+						"success":        true,
+						"recovery_codes": [2]string{"recovery 2", "codes 2"},
+					}
+					json.NewEncoder(w).Encode(body)
+				}
+			},
+		},
+		{
+			Path: "/api/v4/internal/discover",
+			Handler: func(w http.ResponseWriter, r *http.Request) {
+				body := &discover.Response{
+					UserId:   1,
+					Username: "jane-doe",
+					Name:     "Jane Doe",
+				}
+				json.NewEncoder(w).Encode(body)
 			},
 		},
 	}
 }
 
-func TestGetRecoveryCodes(t *testing.T) {
+func TestGetRecoveryCodesByKeyId(t *testing.T) {
 	client, cleanup := setup(t)
 	defer cleanup()
 
-	result, err := client.GetRecoveryCodes("0")
+	args := &commandargs.CommandArgs{GitlabKeyId: "0"}
+	result, err := client.GetRecoveryCodes(args)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"recovery 1", "codes 1"}, result)
+}
+
+func TestGetRecoveryCodesByUsername(t *testing.T) {
+	client, cleanup := setup(t)
+	defer cleanup()
+
+	args := &commandargs.CommandArgs{GitlabUsername: "jane-doe"}
+	result, err := client.GetRecoveryCodes(args)
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"recovery 2", "codes 2"}, result)
 }
 
 func TestMissingUser(t *testing.T) {
 	client, cleanup := setup(t)
 	defer cleanup()
 
-	_, err := client.GetRecoveryCodes("1")
+	args := &commandargs.CommandArgs{GitlabKeyId: "1"}
+	_, err := client.GetRecoveryCodes(args)
 	assert.Equal(t, "missing user", err.Error())
 }
 
@@ -107,7 +140,8 @@ func TestErrorResponses(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			resp, err := client.GetRecoveryCodes(tc.fakeId)
+			args := &commandargs.CommandArgs{GitlabKeyId: tc.fakeId}
+			resp, err := client.GetRecoveryCodes(args)
 
 			assert.EqualError(t, err, tc.expectedError)
 			assert.Nil(t, resp)
