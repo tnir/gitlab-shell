@@ -19,9 +19,7 @@ func TestClients(t *testing.T) {
 		{
 			Path: "/api/v4/internal/hello",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
-				if r.Method != http.MethodGet {
-					w.WriteHeader(http.StatusMethodNotAllowed)
-				}
+				require.Equal(t, http.MethodGet, r.Method)
 
 				fmt.Fprint(w, "Hello")
 			},
@@ -29,9 +27,7 @@ func TestClients(t *testing.T) {
 		{
 			Path: "/api/v4/internal/post_endpoint",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
-				if r.Method != http.MethodPost {
-					w.WriteHeader(http.StatusMethodNotAllowed)
-				}
+				require.Equal(t, http.MethodPost, r.Method)
 
 				b, err := ioutil.ReadAll(r.Body)
 				defer r.Body.Close()
