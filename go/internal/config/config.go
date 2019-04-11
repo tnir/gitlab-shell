@@ -7,14 +7,16 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	yaml "gopkg.in/yaml.v2"
 )
 
 const (
-	configFile            = "config.yml"
-	logFile               = "gitlab-shell.log"
-	defaultSecretFileName = ".gitlab_shell_secret"
+	configFile                = "config.yml"
+	logFile                   = "gitlab-shell.log"
+	defaultSecretFileName     = ".gitlab_shell_secret"
+	defaultReadTimeoutSeconds = 300
 )
 
 type MigrationConfig struct {
@@ -22,15 +24,22 @@ type MigrationConfig struct {
 	Features []string `yaml:"features"`
 }
 
+type HttpSettingsConfig struct {
+	User               string `yaml:"user"`
+	Password           string `yaml:"password"`
+	ReadTimeoutSeconds uint64 `yaml:"read_timeout"`
+}
+
 type Config struct {
 	RootDir        string
-	LogFile        string          `yaml:"log_file"`
-	LogFormat      string          `yaml:"log_format"`
-	Migration      MigrationConfig `yaml:"migration"`
-	GitlabUrl      string          `yaml:"gitlab_url"`
-	GitlabTracing  string          `yaml:"gitlab_tracing"`
-	SecretFilePath string          `yaml:"secret_file"`
-	Secret         string          `yaml:"secret"`
+	LogFile        string             `yaml:"log_file"`
+	LogFormat      string             `yaml:"log_format"`
+	Migration      MigrationConfig    `yaml:"migration"`
+	GitlabUrl      string             `yaml:"gitlab_url"`
+	GitlabTracing  string             `yaml:"gitlab_tracing"`
+	SecretFilePath string             `yaml:"secret_file"`
+	Secret         string             `yaml:"secret"`
+	HttpSettings   HttpSettingsConfig `yaml:"http_settings"`
 }
 
 func New() (*Config, error) {
@@ -51,7 +60,7 @@ func (c *Config) FeatureEnabled(featureName string) bool {
 		return false
 	}
 
-	if !strings.HasPrefix(c.GitlabUrl, "http+unix://") {
+	if !strings.HasPrefix(c.GitlabUrl, "http+unix://") && !strings.HasPrefix(c.GitlabUrl, "http://") {
 		return false
 	}
 
@@ -62,6 +71,15 @@ func (c *Config) FeatureEnabled(featureName string) bool {
 	}
 
 	return false
+}
+
+func (c *HttpSettingsConfig) ReadTimeout() time.Duration {
+	timeoutSeconds := c.ReadTimeoutSeconds
+	if c.ReadTimeoutSeconds == 0 {
+		timeoutSeconds = defaultReadTimeoutSeconds
+	}
+
+	return time.Duration(timeoutSeconds) * time.Second
 }
 
 func newFromFile(filename string) (*Config, error) {
