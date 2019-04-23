@@ -7,16 +7,14 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"time"
 
 	yaml "gopkg.in/yaml.v2"
 )
 
 const (
-	configFile                = "config.yml"
-	logFile                   = "gitlab-shell.log"
-	defaultSecretFileName     = ".gitlab_shell_secret"
-	defaultReadTimeoutSeconds = 300
+	configFile            = "config.yml"
+	logFile               = "gitlab-shell.log"
+	defaultSecretFileName = ".gitlab_shell_secret"
 )
 
 type MigrationConfig struct {
@@ -40,6 +38,7 @@ type Config struct {
 	SecretFilePath string             `yaml:"secret_file"`
 	Secret         string             `yaml:"secret"`
 	HttpSettings   HttpSettingsConfig `yaml:"http_settings"`
+	HttpClient     *HttpClient
 }
 
 func New() (*Config, error) {
@@ -71,15 +70,6 @@ func (c *Config) FeatureEnabled(featureName string) bool {
 	}
 
 	return false
-}
-
-func (c *HttpSettingsConfig) ReadTimeout() time.Duration {
-	timeoutSeconds := c.ReadTimeoutSeconds
-	if c.ReadTimeoutSeconds == 0 {
-		timeoutSeconds = defaultReadTimeoutSeconds
-	}
-
-	return time.Duration(timeoutSeconds) * time.Second
 }
 
 func newFromFile(filename string) (*Config, error) {

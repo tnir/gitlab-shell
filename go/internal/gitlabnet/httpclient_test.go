@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -86,19 +85,7 @@ func TestEmptyBasicAuthSettings(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestReadTimeoutSetting(t *testing.T) {
-	expectedTimeout := 500
-
-	config := &config.Config{HttpSettings: config.HttpSettingsConfig{ReadTimeoutSeconds: uint64(expectedTimeout)}}
-
-	client := buildHttpClient(config)
-	assert.Equal(t, time.Duration(expectedTimeout)*time.Second, client.httpClient.Timeout)
-
-	socketClient := buildSocketClient(config)
-	assert.Equal(t, time.Duration(expectedTimeout)*time.Second, socketClient.httpClient.Timeout)
-}
-
-func setup(t *testing.T, config *config.Config, requests []testserver.TestRequestHandler) (GitlabClient, func()) {
+func setup(t *testing.T, config *config.Config, requests []testserver.TestRequestHandler) (*GitlabClient, func()) {
 	cleanup, url, err := testserver.StartHttpServer(requests)
 	require.NoError(t, err)
 

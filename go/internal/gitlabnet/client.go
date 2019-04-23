@@ -17,25 +17,24 @@ const (
 	secretHeaderName = "Gitlab-Shared-Secret"
 )
 
-type GitlabClient interface {
-	Get(path string) (*http.Response, error)
-	Post(path string, data interface{}) (*http.Response, error)
-}
-
 type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
-func GetClient(config *config.Config) (GitlabClient, error) {
-	url := config.GitlabUrl
-	if strings.HasPrefix(url, UnixSocketProtocol) {
-		return buildSocketClient(config), nil
-	}
-	if strings.HasPrefix(url, HttpProtocol) {
-		return buildHttpClient(config), nil
+type GitlabClient struct {
+	httpClient *http.Client
+	config     *config.Config
+	host       string
+}
+
+func GetClient(config *config.Config) (*GitlabClient, error) {
+	client := config.GetHttpClient()
+
+	if client == nil {
+		return nil, fmt.Errorf("Unsupported protocol")
 	}
 
-	return nil, fmt.Errorf("Unsupported protocol")
+	return &GitlabClient{httpClient: client.HttpClient, config: config, host: client.Host}, nil
 }
 
 func normalizePath(path string) string {
@@ -85,13 +84,32 @@ func parseError(resp *http.Response) error {
 
 }
 
-func doRequest(client *http.Client, config *config.Config, request *http.Request) (*http.Response, error) {
-	encodedSecret := base64.StdEncoding.EncodeToString([]byte(config.Secret))
+func (c *GitlabClient) Get(path string) (*http.Response, error) {
+	return c.doRequest("GET", path, nil)
+}
+
+func (c *GitlabClient) Post(path string, data interface{}) (*http.Response, error) {
+	return c.doRequest("POST", path, data)
+}
+
+func (c *GitlabClient) doRequest(method, path string, data interface{}) (*http.Response, error) {
+	request, err := newRequest(method, c.host, path, data)
+	if err != nil {
+		return nil, err
+	}
+
+	user, password := c.config.HttpSettings.User, c.config.HttpSettings.Password
+	if user != "" && password != "" {
+		request.SetBasicAuth(user, password)
+	}
+
+	encodedSecret := base64.StdEncoding.EncodeToString([]byte(c.config.Secret))
 	request.Header.Set(secretHeaderName, encodedSecret)
 
 	request.Header.Add("Content-Type", "application/json")
+	request.Close = true
 
-	response, err := client.Do(request)
+	response, err := c.httpClient.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("Internal API unreachable")
 	}
