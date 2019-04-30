@@ -95,7 +95,7 @@ describe GitlabKeys do
     end
   end
 
-  describe :list_keys do
+  describe ':list_keys' do
     let(:gitlab_keys) { build_gitlab_keys('list_keys') }
 
     before do
