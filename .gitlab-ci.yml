@@ -79,3 +79,17 @@ dependency_scanning:
         "registry.gitlab.com/gitlab-org/security-products/dependency-scanning:$SP_VERSION" /code
   artifacts:
     paths: [gl-dependency-scanning-report.json]
+
+code_navigation:
+  image: docker:stable
+  variables:
+    DOCKER_DRIVER: overlay2
+  allow_failure: true
+  services:
+    - docker:stable-dind
+  before_script: []
+  script:
+    - docker run -v $(pwd):/code -w /code --rm ihar/lsif-go:latest
+  artifacts:
+    reports:
+      lsif: lsif.json.gz
