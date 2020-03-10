@@ -81,15 +81,14 @@ dependency_scanning:
     paths: [gl-dependency-scanning-report.json]
 
 code_navigation:
-  image: docker:stable
-  variables:
-    DOCKER_DRIVER: overlay2
+  image: golang:1.14.0
   allow_failure: true
-  services:
-    - docker:stable-dind
   before_script: []
   script:
-    - docker run -v $(pwd):/code -w /code --rm ihar/lsif-go:latest
+    - apt-get update && apt-get install -y ruby-full
+    - go get github.com/sourcegraph/lsif-go/cmd/lsif-go
+    - lsif-go && curl https://gitlab.com/igor.drozdov/lsif-transformer/-/raw/master/run.rb -o run.rb && ruby run.rb dump.lsif && mv dump.lsif.json lsif.json
   artifacts:
     reports:
-      lsif: lsif.json.gz
+      lsif: lsif.json
+
