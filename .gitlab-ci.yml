@@ -82,13 +82,14 @@ dependency_scanning:
 
 code_navigation:
   image: golang:1.14.0
-  allow_failure: true
-  before_script: []
   script:
     - apt-get update && apt-get install -y ruby-full
     - go get github.com/sourcegraph/lsif-go/cmd/lsif-go
-    - lsif-go && curl https://gitlab.com/igor.drozdov/lsif-transformer/-/raw/master/run.rb -o run.rb && ruby run.rb dump.lsif && mv dump.lsif.json lsif.json
+    - gem install lsif_parser
+    - lsif-go
+    - lsif_parser dump.lsif $PWD
+    - mv dump.lsif.tmp lsif
   artifacts:
-    reports:
-      lsif: lsif.json
+    paths:
+      - lsif/
 
