@@ -60,6 +60,7 @@ func (gc *GitalyCommand) RunGitalyCommand(handler GitalyHandlerFunc) error {
 func (gc *GitalyCommand) LogExecution(repository *pb.Repository, response *accessverifier.Response, protocol string) {
 	fields := log.Fields{
 		"command":         gc.ServiceName,
+		"correlation_id":  response.CorrelationID,
 		"gl_project_path": repository.GlProjectPath,
 		"gl_repository":   repository.GlRepository,
 		"user_id":         response.UserId,
