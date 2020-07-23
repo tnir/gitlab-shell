@@ -57,5 +57,4 @@ func TestUploadPack(t *testing.T) {
 		assert.Equal(t, v, actual[0])
 	}
 	assert.Empty(t, testServer.ReceivedMD["some-other-ff"])
-
 }
