@@ -69,12 +69,6 @@ code_quality:
   extends: .use-docker-in-docker
   rules: *workflow_rules
 
-.sast-analyzer:
-  rules: *workflow_rules
-
-.ds-analyzer:
-  rules: *workflow_rules
-
 code_navigation:
   image: sourcegraph/lsif-go:v1
   allow_failure: true
@@ -83,3 +77,14 @@ code_navigation:
   artifacts:
     reports:
       lsif: dump.lsif
+
+# SAST
+gosec-sast:
+  rules: *workflow_rules
+
+# Dependency Scanning
+gemnasium-dependency_scanning:
+  rules: *workflow_rules
+
+bundler-audit-dependency_scanning:
+  rules: *workflow_rules
