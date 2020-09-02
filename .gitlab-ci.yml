@@ -69,6 +69,12 @@ code_quality:
   extends: .use-docker-in-docker
   rules: *workflow_rules
 
+sast:
+  rules: *workflow_rules
+
+dependency_scanning:
+  rules: *workflow_rules
+
 code_navigation:
   image: sourcegraph/lsif-go:v1
   allow_failure: true
