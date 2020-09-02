@@ -5,6 +5,7 @@ include:
 
 variables:
   DOCKER_VERSION: "19.03.0"
+  SAST_DISABLE_DIND: true
 
 workflow:
   rules: &workflow_rules
@@ -69,7 +70,10 @@ code_quality:
   extends: .use-docker-in-docker
   rules: *workflow_rules
 
-sast:
+.sast-analyzer:
+  rules: *workflow_rules
+
+.ds-analyzer:
   rules: *workflow_rules
 
 dependency_scanning:
