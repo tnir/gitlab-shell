@@ -27,7 +27,25 @@ type HttpClient struct {
 	Host string
 }
 
-func NewHTTPClient(gitlabURL, gitlabRelativeURLRoot, caFile, caPath string, selfSignedCert bool, readTimeoutSeconds uint64) *HttpClient {
+type httpClientCfg struct {
+	keyPath, certPath string
+}
+
+type HTTPClientOpt func(*httpClientCfg)
+
+func WithClientCert(certPath, keyPath string) HTTPClientOpt {
+	return func(hcc *httpClientCfg) {
+		hcc.keyPath = keyPath
+		hcc.certPath = certPath
+	}
+}
+
+func NewHTTPClient(gitlabURL, gitlabRelativeURLRoot, caFile, caPath string, selfSignedCert bool, readTimeoutSeconds uint64, opts ...HTTPClientOpt) *HttpClient {
+	httpClientCfg := &httpClientCfg{}
+
+	for _, opt := range opts {
+		opt(httpClientCfg)
+	}
 
 	var transport *http.Transport
 	var host string
@@ -36,7 +54,7 @@ func NewHTTPClient(gitlabURL, gitlabRelativeURLRoot, caFile, caPath string, self
 	} else if strings.HasPrefix(gitlabURL, httpProtocol) {
 		transport, host = buildHttpTransport(gitlabURL)
 	} else if strings.HasPrefix(gitlabURL, httpsProtocol) {
-		transport, host = buildHttpsTransport(caFile, caPath, selfSignedCert, gitlabURL)
+		transport, host = buildHttpsTransport(httpClientCfg.certPath, httpClientCfg.keyPath, caFile, caPath, selfSignedCert, gitlabURL)
 	} else {
 		return nil
 	}
@@ -70,11 +88,20 @@ func buildSocketTransport(gitlabURL, gitlabRelativeURLRoot string) (*http.Transp
 	return transport, host
 }
 
-func buildHttpsTransport(caFile, caPath string, selfSignedCert bool, gitlabURL string) (*http.Transport, string) {
+func buildHttpsTransport(certPath, keyPath, caFile, caPath string, selfSignedCert bool, gitlabURL string) (*http.Transport, string) {
 	certPool, err := x509.SystemCertPool()
 
 	if err != nil {
 		certPool = x509.NewCertPool()
+	}
+
+	var clientCert tls.Certificate
+	if certPath != "" && keyPath != "" {
+		cert, err := tls.LoadX509KeyPair(keyPath, certPath)
+		if err != nil {
+			// TODO: log the error or return to caller
+		}
+		clientCert = cert
 	}
 
 	if caFile != "" {
@@ -94,6 +121,7 @@ func buildHttpsTransport(caFile, caPath string, selfSignedCert bool, gitlabURL s
 
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{
+			Certificates:       []tls.Certificate{clientCert},
 			RootCAs:            certPool,
 			InsecureSkipVerify: selfSignedCert,
 		},
