@@ -9,7 +9,7 @@ require (
 	github.com/stretchr/testify v1.4.0
 	gitlab.com/gitlab-org/gitaly v1.68.0
 	gitlab.com/gitlab-org/labkit v0.0.0-20200908084045-45895e129029
-	google.golang.org/grpc v1.24.0
+	google.golang.org/grpc v1.33.1
 	gopkg.in/yaml.v2 v2.2.8
 )
 
