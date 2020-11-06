@@ -10,7 +10,7 @@ require (
 	gitlab.com/gitlab-org/gitaly v1.68.0
 	gitlab.com/gitlab-org/labkit v0.0.0-20200908084045-45895e129029
 	google.golang.org/grpc v1.24.0
-	gopkg.in/yaml.v2 v2.2.8
+	gopkg.in/yaml.v2 v2.3.0
 )
 
 // go get tries to enforce semantic version compatibility via module paths.
