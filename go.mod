@@ -6,7 +6,7 @@ require (
 	github.com/mattn/go-shellwords v0.0.0-20190425161501-2444a32a19f4
 	github.com/otiai10/copy v1.0.1
 	github.com/sirupsen/logrus v1.6.0
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.7.0
 	gitlab.com/gitlab-org/gitaly v1.68.0
 	gitlab.com/gitlab-org/labkit v0.0.0-20200908084045-45895e129029
 	google.golang.org/grpc v1.24.0
