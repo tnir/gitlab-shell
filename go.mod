@@ -7,7 +7,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/mattn/go-shellwords v1.0.11
 	github.com/mikesmitty/edkey v0.0.0-20170222072505-3356ea4e686a
-	github.com/otiai10/copy v1.4.2
+	github.com/otiai10/copy v1.6.0
 	github.com/pires/go-proxyproto v0.5.0
 	github.com/prometheus/client_golang v1.10.0
 	github.com/sirupsen/logrus v1.8.1
