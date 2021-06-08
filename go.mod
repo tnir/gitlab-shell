@@ -9,7 +9,7 @@ require (
 	github.com/mikesmitty/edkey v0.0.0-20170222072505-3356ea4e686a
 	github.com/otiai10/copy v1.4.2
 	github.com/pires/go-proxyproto v0.5.0
-	github.com/prometheus/client_golang v1.10.0
+	github.com/prometheus/client_golang v1.11.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 	gitlab.com/gitlab-org/gitaly v1.68.0
